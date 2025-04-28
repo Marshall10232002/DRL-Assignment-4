@@ -27,7 +27,7 @@ class Agent:
         act_dim = 1  # Based on your env setup
         act_limit = 1.0  # Action range is [-1, 1]
 
-        self.device = torch.device('cpu')
+        self.device = torch.device('cuda')
         self.actor = Actor(obs_dim, act_dim, act_limit).to(self.device)
         self.actor.load_state_dict(torch.load('Q2_model/ddpg_actor.pth', map_location=self.device))
         self.actor.eval()

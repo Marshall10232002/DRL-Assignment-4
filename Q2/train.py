@@ -26,6 +26,11 @@ obs_dim = env.observation_space.shape[0]
 act_dim = env.action_space.shape[0]
 act_limit = env.action_space.high[0]
 
+# ─── DEVICE SETUP ───
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print(f"Using device: {device}")
+
 # ─── DDPG NETWORKS ───
 
 class Actor(nn.Module):
@@ -87,10 +92,10 @@ def soft_update(net, target_net, tau):
 # ─── TRAINING ───
 
 def train():
-    actor = Actor(obs_dim, act_dim, act_limit)
-    critic = Critic(obs_dim, act_dim)
-    target_actor = Actor(obs_dim, act_dim, act_limit)
-    target_critic = Critic(obs_dim, act_dim)
+    actor = Actor(obs_dim, act_dim, act_limit).to(device)
+    critic = Critic(obs_dim, act_dim).to(device)
+    target_actor = Actor(obs_dim, act_dim, act_limit).to(device)
+    target_critic = Critic(obs_dim, act_dim).to(device)
     target_actor.load_state_dict(actor.state_dict())
     target_critic.load_state_dict(critic.state_dict())
 
@@ -99,11 +104,11 @@ def train():
 
     replay_buffer = ReplayBuffer()
 
-    batch_size = 256
+    batch_size = 512
     gamma = 0.99
     tau = 0.005
 
-    steps = 500_000
+    steps = 50_000
     start_steps = 5_000
     update_after = 5_000
     update_every = 50
@@ -114,7 +119,8 @@ def train():
             action = env.action_space.sample()
         else:
             with torch.no_grad():
-                action = actor(torch.tensor(obs, dtype=torch.float32)).numpy()
+                obs_tensor = torch.tensor(obs, dtype=torch.float32, device=device)
+                action = actor(obs_tensor).cpu().numpy()
                 action += 0.1 * np.random.randn(act_dim)
                 action = np.clip(action, -act_limit, act_limit)
 
@@ -129,7 +135,7 @@ def train():
         if t >= update_after and t % update_every == 0:
             for _ in range(update_every):
                 batch = replay_buffer.sample(batch_size)
-                o, a, r, o2, d = batch
+                o, a, r, o2, d = [x.to(device) for x in batch]
 
                 # Critic update
                 with torch.no_grad():
