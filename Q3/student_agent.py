@@ -42,7 +42,7 @@ class Agent:
         self.device = torch.device('cpu')
 
         # 3) Load your float64 weights
-        weights_path = os.path.join(os.path.dirname(__file__), 'actor_ep1900.pth')
+        weights_path = os.path.join(os.path.dirname(__file__), 'actor_ep2600.pth')
         state_dict   = torch.load(weights_path, map_location=self.device)
         self.actor.load_state_dict(state_dict)
         self.actor.eval()

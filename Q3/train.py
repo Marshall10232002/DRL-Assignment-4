@@ -29,7 +29,7 @@ torch.set_default_dtype(torch.float64)
 MAX_EPISODES    = 1_000_000
 MAX_STEPS_EP    = 1_000
 REPLAY_SIZE     = 1_000_000
-BATCH_SZ        = 512
+BATCH_SZ        = 128
 GAMMA           = 0.99
 TAU             = 0.005
 LR              = 3e-4
